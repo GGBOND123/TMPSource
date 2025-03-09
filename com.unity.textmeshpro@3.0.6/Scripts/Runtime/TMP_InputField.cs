@@ -94,12 +94,15 @@ namespace TMPro
         static private readonly char[] kSeparators = { ' ', '.', ',', '\t', '\r', '\n' };
 
         #region Exposed properties
+        
         /// <summary>
-        /// Text Text used to display the input's value.
+        /// 输入框根节点的Rect
         /// </summary>
-
         protected RectTransform m_RectTransform;
 
+        /// <summary>
+        /// Text Area区域
+        /// </summary>
         [SerializeField]
         protected RectTransform m_TextViewport;
 
