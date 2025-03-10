@@ -101,27 +101,43 @@ namespace TMPro
         protected RectTransform m_RectTransform;
 
         /// <summary>
-        /// Text Area区域
+        /// Text Area区域的Rect
         /// </summary>
         [SerializeField]
         protected RectTransform m_TextViewport;
 
         protected RectMask2D m_TextComponentRectMask;
 
+        /// <summary>
+        /// Text Area区域的RectMask2D
+        /// </summary>
         protected RectMask2D m_TextViewportRectMask;
         private Rect m_CachedViewportRect;
 
+        /// <summary>
+        /// 输入框下的内容节点的TMP_Text
+        /// </summary>
         [SerializeField]
         protected TMP_Text m_TextComponent;
 
         protected RectTransform m_TextComponentRectTransform;
 
+
+        /// <summary>
+        /// 输入框下的占位符的Graphic
+        /// </summary>
         [SerializeField]
         protected Graphic m_Placeholder;
 
+        /// <summary>
+        /// 垂直拉动框进度条:Scrollbar
+        /// </summary>
         [SerializeField]
         protected Scrollbar m_VerticalScrollbar;
 
+        /// <summary>
+        /// 包含点击、选中、非选中的事件响应
+        /// </summary>
         [SerializeField]
         protected TMP_ScrollbarEventHandler m_VerticalScrollbarEventHandler;
         //private bool m_ForceDeactivation;
@@ -293,9 +309,21 @@ namespace TMPro
 
         #endregion
 
+        /// <summary>
+        /// 当前光标在所有文本中 从0开始计算的 Index
+        /// </summary>
         protected int m_StringPosition = 0;
+        /// <summary>
+        /// 选中文本后，鼠标上下拖动选中文本范围超出框大小时会更新该值；基于光标位置选中部分的左/右边界文本Index
+        /// </summary>
         protected int m_StringSelectPosition = 0;
+        /// <summary>
+        /// 当前光标所在位置，且选中文本后鼠标拖动选中文本范围也不更新该值
+        /// </summary>
         protected int m_CaretPosition = 0;
+        /// <summary>
+        /// 选中文本后，鼠标拖动超出框，并且上下拖动选中文本范围时会更新该值；基于光标位置选中部分的左/右边界文本Index
+        /// </summary>
         protected int m_CaretSelectPosition = 0;
 
         private RectTransform caretRectTrans = null;
@@ -344,14 +372,23 @@ namespace TMPro
             }
         }
 
+        /// <summary>
+        /// 输入法中未确认的文本，如果确认了文本为""
+        /// </summary>
         private string compositionString
         {
-            get { return inputSystem != null ? inputSystem.compositionString : Input.compositionString; }
+            get 
+            {
+                return inputSystem != null ? inputSystem.compositionString : Input.compositionString; 
+            }
         }
         private bool m_IsCompositionActive = false;
         private bool m_ShouldUpdateIMEWindowPosition = false;
         private int m_PreviousIMEInsertionLine = 0;
 
+        /// <summary>
+        /// 输入法中未确认的文本长度
+        /// </summary>
         private int compositionLength
         {
             get
@@ -494,7 +531,7 @@ namespace TMPro
         }
 
         /// <summary>
-        /// Input field's current text value. This is not necessarily the same as what is visible on screen.
+        /// Input field's current text value.（输入框内认准的文本内容，随输入变化而变化） This is not necessarily the same as what is visible on screen.
         /// </summary>
         /// <remarks>
         /// Note that null is invalid value  for InputField.text.
@@ -868,14 +905,75 @@ namespace TMPro
 
         /// <summary>
         /// Current position of the cursor.
-        /// Getters are public Setters are protected
+        /// 当前光标所在位置，且选中文本后鼠标拖动选中文本范围也不更新该值 + 输入法中未确认的文本长度
         /// </summary>
 
-        protected int caretPositionInternal { get { return m_CaretPosition + compositionLength; } set { m_CaretPosition = value; ClampCaretPos(ref m_CaretPosition); } }
-        protected int stringPositionInternal { get { return m_StringPosition + compositionLength; } set { m_StringPosition = value; ClampStringPos(ref m_StringPosition); } }
+        protected int caretPositionInternal
+        {
+            get
+            {
+                //Debug.LogError("文本的 m_CaretPosition：" + m_CaretPosition);
+                return m_CaretPosition + compositionLength;
+            }
+            set
+            {
+                m_CaretPosition = value; ClampCaretPos(ref m_CaretPosition);
+            }
+        }
 
-        protected int caretSelectPositionInternal { get { return m_CaretSelectPosition + compositionLength; } set { m_CaretSelectPosition = value; ClampCaretPos(ref m_CaretSelectPosition); } }
-        protected int stringSelectPositionInternal { get { return m_StringSelectPosition + compositionLength; } set { m_StringSelectPosition = value; ClampStringPos(ref m_StringSelectPosition); } }
+        /// <summary>
+        /// get：当前光标在所有文本中的Index + 输入法中未确认的文本长度。
+        /// set：设置光标在所有文本中的Index
+        /// </summary>
+        protected int stringPositionInternal 
+        { 
+            get 
+            {
+                //Debug.LogError("文本的 m_StringPosition：" + m_StringPosition);
+                //Debug.LogError("文本的 compositionLength：" + compositionLength);
+                //Debug.LogError("文本的 stringPositionInternal：" + (m_StringPosition + compositionLength));
+                return m_StringPosition + compositionLength; 
+            } 
+            set 
+            { 
+                m_StringPosition = value; 
+                ClampStringPos(ref m_StringPosition); 
+            } 
+        }
+
+        /// <summary>
+        /// 选中文本后，鼠标上下拖动选中文本范围超出框大小时会更新该值；基于光标位置选中部分的左/右边界文本Index + 输入法中未确认的文本长度。
+        /// </summary>
+        protected int caretSelectPositionInternal 
+        {
+            get
+            {
+                //Debug.LogError("文本的 m_CaretSelectPosition：" + m_CaretSelectPosition);
+                return m_CaretSelectPosition + compositionLength; 
+            } 
+            set 
+            { 
+                m_CaretSelectPosition = value; 
+                ClampCaretPos(ref m_CaretSelectPosition);
+            } 
+        }
+
+        /// <summary>
+        /// 选中文本后，光标当前位置 or 鼠标拖动选中文本范围时会更新该值；基于光标位置选中部分的左/右边界文本Index + 输入法中未确认的文本长度。
+        /// </summary>
+        protected int stringSelectPositionInternal 
+        { 
+            get 
+            {
+                //Debug.LogError("文本的 m_StringSelectPosition：" + m_StringSelectPosition);
+                return m_StringSelectPosition + compositionLength; 
+            } 
+            set
+            {
+                m_StringSelectPosition = value;
+                ClampStringPos(ref m_StringSelectPosition);
+            } 
+        }
 
         private bool hasSelection { get { return stringPositionInternal != stringSelectPositionInternal; } }
         private bool m_isSelected;
@@ -3007,7 +3105,16 @@ namespace TMPro
             if (InPlaceEditing() == false)
                 return;
 
-            for (int i = 0, imax = input.Length; i < imax; ++i)
+            //for (int i = 0, imax = input.Length; i < imax; ++i)
+            //{
+            //    char c = input[i];
+
+            //    if (c >= ' ' || c == '\t' || c == '\r' || c == 10 || c == '\n')
+            //    {
+            //        Append(c);
+            //    }
+            //}
+            for (int i = input.Length - 1; i >= 0; --i)
             {
                 char c = input[i];
 
@@ -3017,7 +3124,7 @@ namespace TMPro
                 }
             }
         }
-
+        
         protected virtual void Append(char input)
         {
             if (m_ReadOnly)
@@ -3108,9 +3215,13 @@ namespace TMPro
             m_Text = text.Insert(m_StringPosition, replaceString);
 
             if (!char.IsHighSurrogate(c))
-                m_CaretSelectPosition = m_CaretPosition += 1;
+            {
+                //m_CaretPosition = Mathf.Max(0, m_CaretPosition - 1);
+                m_CaretSelectPosition = m_CaretPosition;
+            }
 
-            m_StringSelectPosition = m_StringPosition += 1;
+            //m_StringPosition = Mathf.Max(0, m_StringPosition - 1);
+            m_StringSelectPosition = m_StringPosition;
 
             UpdateTouchKeyboardFromEditChanges();
             SendOnValueChanged();
